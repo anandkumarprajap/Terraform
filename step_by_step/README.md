@@ -47,14 +47,14 @@ Run these commands on your Ubuntu EC2 instance or Ubuntu machine.
 
 ### Step 1: Add the HashiCorp repository
 
-```
+```bash
 sudo apt-get update
 sudo apt-get install -y gnupg software-properties-common wget
 ```
 
 Download and install the HashiCorp signing key:
 
-```
+```bash
 wget -O- https://apt.releases.hashicorp.com/gpg \
   | sudo gpg --dearmor \
   -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
@@ -62,14 +62,14 @@ wget -O- https://apt.releases.hashicorp.com/gpg \
 
 Add the repository:
 
-```
+```bash
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" \
   | sudo tee /etc/apt/sources.list.d/hashicorp.list
 ```
 
 ### Step 2: Install and verify Terraform
 
-```
+```bash
 sudo apt-get update
 sudo apt-get install -y terraform
 terraform -version
@@ -81,7 +81,7 @@ Expected output: a Terraform version number. Your installed version should satis
 
 ### Step 1: Download
 
-```
+```bash
 sudo apt-get update
 sudo apt-get install -y curl unzip
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -91,19 +91,19 @@ This download is for Linux x86-64. For an ARM-based machine, use the appropriate
 
 ### Step 2: Extract the archive
 
-```
+```bash
 unzip awscliv2.zip
 ```
 
 ### Step 3: Install AWS CLI
 
-```
+```bash
 sudo ./aws/install
 ```
 
 ### Step 4: Verify
 
-```
+```bash
 aws --version
 ```
 
@@ -115,13 +115,13 @@ Expected output starts with `aws-cli/2`.
 
 For a learning machine using IAM access keys:
 
-```
+```bash
 aws configure
 ```
 
 Enter your own values when prompted:
 
-```
+```bash
 AWS Access Key ID: YOUR_ACCESS_KEY
 AWS Secret Access Key: YOUR_SECRET_ACCESS_KEY
 Default region name: us-east-2
@@ -134,7 +134,7 @@ If your Ubuntu machine is an EC2 instance, prefer an attached IAM role instead o
 
 ### Step 2: Verify your identity
 
-```
+```bash
 aws sts get-caller-identity
 ```
 
@@ -142,7 +142,7 @@ This returns your AWS account ID and the IAM user or role associated with the ac
 
 ### Step 3: Verify the region and S3 access
 
-```
+```bash
 aws configure get region
 aws s3 ls
 ```
@@ -169,7 +169,7 @@ Use a dedicated IAM role or user with least-privilege permissions scoped to your
 
 Your `ec2.tf` uses:
 
-```
+```bash
 public_key = file("terra-auto-server-key.pub")
 ```
 
@@ -177,7 +177,7 @@ That public-key file must exist in the Terraform project directory.
 
 Generate a key pair if you don't already have one:
 
-```
+```bash
 ssh-keygen -t ed25519 -f terra-auto-server-key
 ```
 
@@ -190,7 +190,7 @@ The generated files are:
 
 Protect the private key:
 
-```
+```bash
 chmod 600 terra-auto-server-key
 ```
 
@@ -200,14 +200,14 @@ If you already have a compatible SSH key pair, use its existing public key inste
 
 Create a dedicated directory:
 
-```
+```bash
 mkdir terraform-aws-lab
 cd terraform-aws-lab
 ```
 
 Use this structure:
 
-```
+```txt
 terraform-aws-lab/
 ├── terraform.tf
 ├── main.tf
@@ -230,7 +230,7 @@ cd ../terraform-backend-bootstrap
 
 Create a file named `main.tf`:
 
-```
+```hcl
 terraform {
   required_version = ">= 1.15.0"
 
@@ -288,7 +288,7 @@ Important: S3 bucket names are globally unique. If the bucket name is already ta
 
 Run these commands from `terraform-backend-bootstrap`:
 
-```
+```bash
 terraform init
 terraform fmt
 terraform validate
@@ -300,7 +300,7 @@ Type `yes` when prompted to approve the changes.
 
 Verify the resources:
 
-```
+```bash
 aws s3 ls
 aws dynamodb describe-table \
   --table-name anandkumarprajap_table \
@@ -313,7 +313,7 @@ The bucket now has versioning enabled, which helps recover previous versions of 
 
 Return to your project directory:
 
-```
+```bash
 cd ../terraform-aws-lab
 ```
 
@@ -321,7 +321,7 @@ cd ../terraform-aws-lab
 
 Use this backend configuration for S3-native locking:
 
-```
+```hcl
 terraform {
   required_version = ">= 1.15.0"
 
@@ -357,7 +357,7 @@ For now, leave `main.tf` in the main project empty or use it for additional reso
 
 Use your EC2 configuration with a few formatting improvements:
 
-```
+```hcl
 resource "aws_key_pair" "my_ec2_key" {
   key_name   = "terra-auto-server-key"
   public_key = file("${path.module}/terra-auto-server-key.pub")
@@ -433,7 +433,7 @@ Security note: The SSH rule above allows access from any IPv4 address (`0.0.0.0/
 
 ### File 4: `outputs.tf`
 
-```
+```hcl
 output "ec2_instance_id" {
   description = "ID of the created EC2 instance"
   value       = aws_instance.my_ec2_instance.id
@@ -452,7 +452,7 @@ output "ec2_public_dns" {
 
 ### File 5: `.gitignore`
 
-```
+```.gitignore
 .terraform/
 *.tfstate
 *.tfstate.*
@@ -471,7 +471,7 @@ Run the commands from `terraform-aws-lab`.
 
 ### Step 1: Initialize Terraform
 
-```
+```bash
 terraform init
 ```
 
@@ -479,7 +479,7 @@ Terraform downloads the required provider and initializes the S3 backend. If the
 
 ### Step 2: Format the configuration
 
-```
+```bash
 terraform fmt -recursive
 ```
 
@@ -487,7 +487,7 @@ This standardizes indentation and formatting.
 
 ### Step 3: Validate the configuration
 
-```
+```bash
 terraform validate
 ```
 
@@ -495,7 +495,7 @@ This checks the configuration's syntax and structure. It does not guarantee that
 
 ### Step 4: Review the execution plan
 
-```
+```bash
 terraform plan
 ```
 
@@ -503,7 +503,7 @@ Review the resources Terraform intends to create, change, or destroy before proc
 
 ### Step 5: Apply the configuration
 
-```
+```bash
 terraform apply
 ```
 
@@ -511,7 +511,7 @@ Type `yes` only after reviewing the plan.
 
 ### Step 6: Verify the deployment
 
-```
+```bash
 terraform output
 aws ec2 describe-instances \
   --filters "Name=tag:Name,Values=terra-auto-server" \
@@ -524,13 +524,13 @@ The instance should appear in the AWS console under EC2 → Instances, in the `u
 
 Retrieve the public IP:
 
-```
+```bash
 terraform output -raw ec2_public_ip
 ```
 
 Connect using your private key:
 
-```
+```bash
 ssh -i terra-auto-server-key ubuntu@YOUR_EC2_PUBLIC_IP
 ```
 
@@ -553,7 +553,7 @@ Replace `YOUR_EC2_PUBLIC_IP` with the actual address. If the instance has no pub
 
 When you finish the EC2 lab, remove the resources managed by the main project:
 
-```
+```bash
 terraform destroy
 ```
 
